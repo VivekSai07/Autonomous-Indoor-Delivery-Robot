@@ -1,0 +1,310 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="office">
+
+    <!-- =====================================================
+         PHYSICS
+    ===================================================== -->
+    <physics type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <!-- =====================================================
+         LIGHTING  (inlined — avoids Gazebo model-database lookup)
+    ===================================================== -->
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- =====================================================
+         GROUND PLANE  (inlined — avoids Gazebo model-database lookup)
+    ===================================================== -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e6</kp>
+                <kd>100</kd>
+              </ode>
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- =====================================================
+         OUTER WALLS  (10 m × 8 m rectangular room)
+         Wall thickness: 0.2 m   Height: 2.8 m
+    ===================================================== -->
+
+    <!-- North wall -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 4 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>10.4 0.2 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>10.4 0.2 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South wall -->
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -4 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>10.4 0.2 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>10.4 0.2 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East wall -->
+    <model name="wall_east">
+      <static>true</static>
+      <pose>5 0 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.2 8.0 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 8.0 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West wall -->
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-5 0 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.2 8.0 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 8.0 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- =====================================================
+         INTERIOR WALLS  (create 3 rooms + corridor + home)
+    ===================================================== -->
+
+    <!--
+      Floor plan (top view, +x right, +y up):
+
+        W=-5                              E=+5
+      N=+4 +-------+----------+----------+
+           | Room A|          | Room C   |
+           |       |  Room B  |          |
+      y=0  +--+    |          |     +----+
+           |  |    +----  ----+     |   |
+           |Ho|     corridor        |   |
+      S=-4 +--+--------------------+---+
+    -->
+
+    <!-- Horizontal divider between rooms and corridor (y = 0.5, partial) -->
+    <model name="wall_h_divider">
+      <static>true</static>
+      <!-- from x=-5 to x=1 at y=0.5 -->
+      <pose>-2.0 0.5 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>6.0 0.2 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>6.0 0.2 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Vertical divider: Room A | Room B (x = -1.5, upper half) -->
+    <model name="wall_v_AB">
+      <static>true</static>
+      <pose>-1.5 2.25 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.2 3.5 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 3.5 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Vertical divider: Room B | Room C (x = 1.5, upper half) -->
+    <model name="wall_v_BC">
+      <static>true</static>
+      <pose>1.5 2.25 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.2 3.5 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 3.5 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Short wall defining the HOME/DOCK alcove (x = -3.5, lower half) -->
+    <model name="wall_home_divider">
+      <static>true</static>
+      <pose>-3.5 -2.0 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.2 4.0 2.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 4.0 2.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- =====================================================
+         FURNITURE / OBSTACLES (help SLAM build features)
+    ===================================================== -->
+
+    <!-- Desk in Room A -->
+    <model name="desk_A">
+      <static>true</static>
+      <pose>-3.0 2.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Desk in Room B -->
+    <model name="desk_B">
+      <static>true</static>
+      <pose>0.0 2.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Desk in Room C -->
+    <model name="desk_C">
+      <static>true</static>
+      <pose>3.0 2.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>1.2 0.6 0.8</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Pillar in corridor (makes SLAM interesting) -->
+    <model name="pillar_corridor">
+      <static>true</static>
+      <pose>1.0 -1.5 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><cylinder><radius>0.15</radius><length>2.0</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.15</radius><length>2.0</length></cylinder></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- =====================================================
+         CHARGING DOCK  (AprilTag target — Phase 9)
+         Simple box on the west wall, inside HOME alcove.
+    ===================================================== -->
+    <model name="charging_dock">
+      <static>true</static>
+      <pose>-4.7 -2.5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.1 0.4 1.0</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.1 0.4 1.0</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Yellow</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

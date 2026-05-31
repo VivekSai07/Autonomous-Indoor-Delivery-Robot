@@ -75,16 +75,114 @@ source install/setup.bash
 
 ## Launch Commands
 
-> Commands are added here as each phase is completed.
+### Phase 1 — Robot Model
 
-### Phase 1 — View Robot Model
+> **Prerequisite (Gazebo only):**
+> ```bash
+> sudo apt install ros-humble-gazebo-ros-pkgs
+> ```
 
 ```bash
-# RViz only (no simulation)
+# WSL2: ensure display is set
+export DISPLAY=:0
+
+# Source workspace (required every new terminal)
+source /opt/ros/humble/setup.bash && source ~/amr_ws/install/setup.bash
+
+# View robot in RViz only (no Gazebo needed)
 ros2 launch robot_description display.launch.py
 
-# Gazebo simulation
+# Launch Gazebo simulation (auto-spawns robot when ready)
 ros2 launch robot_gazebo gazebo.launch.py
+```
+
+**Topics published (Gazebo):**
+
+| Topic | Type | Source |
+|-------|------|--------|
+| `/odom` | `nav_msgs/Odometry` | diff drive plugin |
+| `/scan` | `sensor_msgs/LaserScan` | LiDAR plugin |
+| `/imu` | `sensor_msgs/Imu` | IMU plugin |
+| `/camera/image_raw` | `sensor_msgs/Image` | Camera plugin |
+| `/cmd_vel` | `geometry_msgs/Twist` | subscribed (teleop) |
+
+**Verify all topics are live:**
+```bash
+ros2 topic list | grep -E "odom|scan|imu|camera|cmd_vel"
+ros2 topic hz /scan        # should report ~10 Hz
+ros2 topic hz /odom        # should report ~10 Hz
+```
+
+**Kill Gazebo cleanly between runs:**
+```bash
+pkill -f gzserver; pkill -f gzclient
+```
+
+---
+
+## WSL2 Known Issues & Fixes (Phase 1)
+
+These issues were encountered and resolved on WSL2 + Gazebo Classic 11 + ROS2 Humble.
+Documented here so they don't need to be debugged again in future phases.
+
+### 1. `robot_description` parameter YAML parse error
+
+**Error:** `Unable to parse the value of parameter robot_description as yaml`
+
+**Cause:** ROS2 Humble's `robot_state_publisher` tries to parse every parameter as YAML. A raw URDF string is not valid YAML.
+
+**Fix:** Wrap the xacro command with `ParameterValue`:
+```python
+from launch_ros.parameter_descriptions import ParameterValue
+robot_description = ParameterValue(Command(['xacro ', urdf_file]), value_type=str)
+```
+
+### 2. Gazebo model database empty — robot falls through the floor
+
+**Error:** Robot spawns but immediately falls through the floor with no ground.
+
+**Cause:** `<include><uri>model://ground_plane</uri></include>` silently fails when
+`~/.gazebo/models/` is empty (default on fresh WSL2 installs).
+
+**Fix:** Inline the ground plane and sun light directly in the SDF world file instead
+of relying on the model database. See `src/robot_gazebo/worlds/office.world`.
+
+### 3. Robot tips backward in Gazebo
+
+**Cause:** With drive wheels at `x=0` (chassis center) and only a front caster, the
+centre of gravity sits exactly on the wheel axle line — unstable equilibrium.
+
+**Fix:** Added a rear caster (`caster_wheel_rear`) mirroring the front one. This creates
+a stable rectangular support base:
+```
+rear caster (-0.125, 0) ←→ front caster (+0.125, 0)
+left wheel  (0, +0.145) ←→ right wheel  (0, -0.145)
+CG ≈ (0, 0) — dead centre of rectangle
+```
+
+### 4. `/spawn_entity` service not available — robot never spawns
+
+**Error:** `Service /spawn_entity unavailable. Was Gazebo started with GazeboRosFactory?`
+
+**Root cause (A):** `ExecuteProcess(['gazebo', ...])` does not inherit `GAZEBO_PLUGIN_PATH`,
+so `libgazebo_ros_factory.so` is invisible to Gazebo even when passed via `-s`.
+
+**Fix (A):** Use `IncludeLaunchDescription` pointing to `gazebo_ros/launch/gazebo.launch.py`.
+That launch file sets `GAZEBO_PLUGIN_PATH` via `GazeboRosPaths.get_paths()` before starting
+gzserver.
+
+**Root cause (B):** On WSL2, gzserver takes longer than 30 seconds to register the
+`/spawn_entity` service. `spawn_entity.py` has a hardcoded 30 s timeout.
+
+**Fix (B):** Replace the `TimerAction` with a polling bash loop:
+```bash
+until ros2 service list | grep -q /spawn_entity; do sleep 2; done && ros2 run gazebo_ros spawn_entity.py ...
+```
+
+**Manual fallback** (always works): while Gazebo is running, in a second terminal:
+```bash
+source /opt/ros/humble/setup.bash && source ~/amr_ws/install/setup.bash
+ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity amr_robot -x 0 -y 0 -z 0.05 -Y 0
 ```
 
 ### Phase 2 — Teleoperate
