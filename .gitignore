@@ -1,0 +1,23 @@
+# ROS2 colcon build artifacts
+build/
+install/
+log/
+
+# Generated map files (large binaries — commit manually when finalized)
+maps/*.pgm
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
