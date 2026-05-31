@@ -1,13 +1,13 @@
 # Project TODO
 
-## Current Phase: Phase 0 — Bootstrap ✅
+## Current Phase: Phase 2 — Odometry 🔧
 
 ---
 
 ## Project Status
 
 - [x] **Phase 0**: Project bootstrap — workspace, git, README, TODO
-- [ ] **Phase 1**: Robot Description — URDF/Xacro, Gazebo spawn, RViz display
+- [x] **Phase 1**: Robot Description — URDF/Xacro, Gazebo spawn, RViz display ✅
 - [ ] **Phase 2**: Odometry — verify `/odom`, TF tree, teleop drift
 - [ ] **Phase 3**: Sensor Fusion — EKF (wheel odom + IMU) → `/odometry/filtered`
 - [ ] **Phase 4**: SLAM — SLAM Toolbox mapping → `office_map.yaml`
@@ -23,18 +23,22 @@
 
 ### Phase 1 — Robot Description
 **Branch**: `phase-1/robot-description`
-- [ ] Create `robot_description` package (URDF/Xacro)
-  - [ ] Chassis, wheels, caster
-  - [ ] LiDAR link + Gazebo plugin
-  - [ ] IMU link + Gazebo plugin
-  - [ ] Camera link + Gazebo plugin (for Phase 9)
-  - [ ] Differential drive plugin
-- [ ] Create `robot_gazebo` package
-  - [ ] Office world SDF
-  - [ ] Spawn launch file
-- [ ] RViz config + display launch
-- [ ] Verify: robot visible in RViz
-- [ ] Verify: robot spawns in Gazebo, all topics active
+- [x] Create `robot_description` package (URDF/Xacro)
+  - [x] Chassis, wheels, caster
+  - [x] LiDAR link + Gazebo plugin
+  - [x] IMU link + Gazebo plugin
+  - [x] Camera link + Gazebo plugin (for Phase 9)
+  - [x] Differential drive plugin
+- [x] Create `robot_gazebo` package
+  - [x] Office world SDF
+  - [x] Spawn launch file
+- [x] RViz config + display launch
+- [x] `colcon build` — both packages build clean
+- [x] URDF parses correctly (10 links, 9 joints — added rear caster for stability)
+- [x] **Verified**: robot visible in RViz ✅
+- [x] **Verified**: robot spawns in Gazebo, stable, all sensor topics active ✅
+  - `/odom`, `/scan`, `/imu`, `/camera/image_raw`, `/cmd_vel` all confirmed
+  - Diff drive, camera, LiDAR, IMU plugins all running
 
 ### Phase 2 — Odometry
 **Branch**: `phase-2/odometry`
@@ -98,7 +102,13 @@
 
 ## Known Issues
 
-_None yet._
+- **WSL2 / Gazebo spawn timing**: On WSL2, gzserver takes longer to register `/spawn_entity`
+  than the default 30s timeout. The launch file uses a polling loop to handle this.
+  If auto-spawn still fails, run manually in a second terminal:
+  ```bash
+  source /opt/ros/humble/setup.bash && source ~/amr_ws/install/setup.bash
+  ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity amr_robot -x 0 -y 0 -z 0.05 -Y 0
+  ```
 
 ## Notes
 
