@@ -13,8 +13,9 @@ Visualization Manager:
       Enabled: true
       Name: Grid
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 20
       Reference Frame: <Fixed Frame>
+
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Enabled: true
@@ -22,12 +23,13 @@ Visualization Manager:
       Description Source: Topic
       Description Topic:
         Depth: 5
-        Durability Policy: Volatile
+        Durability Policy: Transient Local
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /robot_description
       Visual Enabled: true
       Collision Enabled: false
+
     - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
@@ -36,10 +38,51 @@ Visualization Manager:
       Show Arrows: true
       Show Axes: true
       Show Names: true
+
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Class: rviz_default_plugins/LaserScan
+      Color: 255; 50; 50
+      Color Transformer: FlatColor
+      Enabled: true
+      Name: LaserScan
+      Size (m): 0.03
+      Style: Points
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /scan
+
+    - Alpha: 1
+      Angle Tolerance: 0.1
+      Class: rviz_default_plugins/Odometry
+      Enabled: true
+      Keep: 200
+      Name: Odometry
+      Position Tolerance: 0.1
+      Shape:
+        Alpha: 1
+        Axes Length: 0.3
+        Axes Radius: 0.03
+        Color: 204; 51; 204
+        Head Length: 0.1
+        Head Radius: 0.05
+        Shaft Length: 0.3
+        Shaft Radius: 0.02
+        Value: Arrow
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /odom
+
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -51,14 +94,14 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/XYOrbit
-      Distance: 2.0
+      Distance: 5.0
       Focal Point:
         X: 0
         Y: 0
         Z: 0
       Name: Current View
-      Pitch: 0.6
-      Target Frame: base_link
+      Pitch: 0.8
+      Target Frame: base_footprint
       Value: XYOrbit (rviz)
       Yaw: 0.8
     Saved: ~
