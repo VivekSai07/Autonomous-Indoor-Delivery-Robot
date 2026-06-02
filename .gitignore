@@ -21,3 +21,7 @@ __pycache__/
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# tf2_tools view_frames generates timestamped files in the workspace root
+frames_*.gv
+frames_*.pdf

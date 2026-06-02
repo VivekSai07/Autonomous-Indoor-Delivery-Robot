@@ -42,12 +42,15 @@
 
 ### Phase 2 — Odometry
 **Branch**: `phase-2/odometry`
-- [ ] **Fix**: single-launch spawn — source ROS2 inside the bash spawn command so
-      `ros2 service list` works inside the launch subprocess (no second terminal needed)
-- [ ] Verify `/odom` topic format and data
-- [ ] Verify TF tree: `odom → base_footprint → base_link → sensors`
-- [ ] Teleop test + observe drift in RViz
-- [ ] Save TF tree diagram to `docs/tf_tree_phase2.pdf`
+- [x] Fix single-launch spawn — Python rclpy spawner, no ros2 CLI daemon needed
+- [x] Fix ros2 topic/service CLI hang — daemon auto-started in launch
+- [x] `sim.rviz` config (Fixed Frame = odom, shows TF + LaserScan + Odometry arrow)
+- [x] `sim_display.launch.py` — RViz for use alongside running simulation
+- [ ] **Verify**: `/odom` topic publishing `nav_msgs/Odometry` with correct data
+- [ ] **Verify**: TF tree complete (`odom → base_footprint → base_link → all sensors`)
+- [ ] **Verify**: Robot moves in RViz as you teleoperate
+- [ ] **Verify**: Drift accumulates over time (expected — no fusion yet)
+- [ ] Save TF tree diagram → `docs/tf_tree_phase2.pdf` (run while sim is active)
 
 ### Phase 3 — Sensor Fusion
 **Branch**: `phase-3/sensor-fusion`

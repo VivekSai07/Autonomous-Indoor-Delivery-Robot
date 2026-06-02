@@ -209,10 +209,62 @@ source /opt/ros/humble/setup.bash && source ~/amr_ws/install/setup.bash
 ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity amr_robot -x 0 -y 0 -z 0.05 -Y 0
 ```
 
-### Phase 2 — Teleoperate
+### Phase 2 — Odometry Verification
 
+Run these in **three separate terminals** (all with ROS2 + workspace sourced and daemon started).
+
+**Terminal 1 — Gazebo simulation (if not already running):**
+```bash
+ros2 launch robot_gazebo gazebo.launch.py
+```
+
+**Terminal 2 — RViz connected to simulation:**
+```bash
+ros2 launch robot_description sim_display.launch.py
+```
+RViz will show:
+- Robot model in the `odom` frame
+- TF tree (all frames: odom → base_footprint → base_link → sensors)
+- Red dots: LiDAR scan (`/scan`)
+- Purple arrow trail: wheel odometry path (`/odom`)
+
+**Terminal 3 — Teleop:**
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+Drive the robot and watch the purple odometry arrows accumulate in RViz.
+Over time the path will drift from the robot's true position — this is
+expected and motivates Phase 3 (EKF sensor fusion).
+
+**Verify topics are publishing (after spawn):**
+```bash
+ros2 topic list | grep -E "odom|scan|imu|cmd_vel|camera"
+ros2 topic hz /odom      # expect ~10 Hz
+ros2 topic hz /scan      # expect ~10 Hz
+```
+
+**Verify TF tree is complete:**
+```bash
+cd ~/amr_ws
+ros2 run tf2_tools view_frames
+# Saves frames_TIMESTAMP.pdf (and .gv) in the current directory
+cp $(ls -t frames_*.pdf | head -1) docs/tf_tree_phase2.pdf
+rm -f frames_*.pdf frames_*.gv   # clean up timestamped files
+```
+
+**Expected TF chain:**
+```
+odom
+  └── base_footprint        ← published by diff_drive plugin
+        └── base_link       ← published by robot_state_publisher
+              ├── left_wheel
+              ├── right_wheel
+              ├── caster_wheel
+              ├── caster_wheel_rear
+              ├── lidar_link
+              ├── imu_link
+              ├── camera_link
+              └── camera_optical_link
 ```
 
 ### Phase 3 — EKF Sensor Fusion
