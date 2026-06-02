@@ -15,22 +15,18 @@ def generate_launch_description():
 
     urdf_file  = os.path.join(pkg_robot_desc,   'urdf',   'robot.urdf.xacro')
     world_file = os.path.join(pkg_robot_gazebo, 'worlds', 'office.world')
+    spawner    = os.path.join(pkg_robot_gazebo, 'scripts', 'spawn_robot.py')
 
     robot_description = ParameterValue(Command(['xacro ', urdf_file]), value_type=str)
 
-    # Spawn command: polls /spawn_entity until it appears, then spawns.
-    # This is timing-agnostic — works however long Gazebo takes to start.
-    spawn_cmd = (
-        'until ros2 service list 2>/dev/null | grep -q /spawn_entity; do '
-        '  echo "[spawn_wait] waiting for /spawn_entity..."; sleep 2; '
-        'done && '
-        'ros2 run gazebo_ros spawn_entity.py '
-        '-topic robot_description '
-        '-entity amr_robot '
-        '-x 0.0 -y 0.0 -z 0.05 -Y 0.0'
-    )
-
     return LaunchDescription([
+
+        # 0. Ensure the ROS2 CLI daemon is running so 'ros2 topic list',
+        #    'ros2 service list', 'ros2 topic echo' work in all terminals.
+        ExecuteProcess(
+            cmd=['ros2', 'daemon', 'start'],
+            output='screen',
+        ),
 
         # 1. Launch Gazebo (gzserver + gzclient) via gazebo_ros — sets
         #    GAZEBO_PLUGIN_PATH / GAZEBO_RESOURCE_PATH correctly.
@@ -41,7 +37,7 @@ def generate_launch_description():
             launch_arguments={'world': world_file}.items(),
         ),
 
-        # 2. Robot state publisher
+        # 2. Robot state publisher (publishes /robot_description as latched topic)
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -53,9 +49,11 @@ def generate_launch_description():
             }],
         ),
 
-        # 3. Spawn robot — waits for /spawn_entity service, then spawns.
+        # 3. Spawn robot using rclpy directly — avoids the ros2 CLI daemon
+        #    which hangs on WSL2. Waits for /spawn_entity + robot_description,
+        #    then calls the service. x y z yaw passed as args.
         ExecuteProcess(
-            cmd=['bash', '-c', spawn_cmd],
+            cmd=['python3', spawner, '0.0', '0.0', '0.05', '0.0'],
             output='screen',
         ),
     ])

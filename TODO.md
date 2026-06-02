@@ -42,9 +42,11 @@
 
 ### Phase 2 — Odometry
 **Branch**: `phase-2/odometry`
-- [ ] Verify `/odom` topic format
-- [ ] Verify TF: `odom → base_footprint → base_link → sensors`
-- [ ] Teleop test + observe drift
+- [ ] **Fix**: single-launch spawn — source ROS2 inside the bash spawn command so
+      `ros2 service list` works inside the launch subprocess (no second terminal needed)
+- [ ] Verify `/odom` topic format and data
+- [ ] Verify TF tree: `odom → base_footprint → base_link → sensors`
+- [ ] Teleop test + observe drift in RViz
 - [ ] Save TF tree diagram to `docs/tf_tree_phase2.pdf`
 
 ### Phase 3 — Sensor Fusion

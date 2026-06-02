@@ -46,11 +46,21 @@ sudo apt update && sudo apt install \
 
 ### WSL2 Setup Note
 
-Before launching any GUI tool (Gazebo, RViz), ensure your display server is running:
+Before launching any GUI tool (Gazebo, RViz), run these two setup steps:
 
 ```bash
+# 1. Display server (required for Gazebo and RViz)
 export DISPLAY=:0       # or the value shown by 'echo $DISPLAY'
+
+# 2. ROS2 CLI daemon — REQUIRED on WSL2 before ros2 topic list / ros2 service list
+#    Without this, all ros2 CLI commands hang indefinitely on WSL2.
+ros2 daemon start
 ```
+
+> **Why the daemon?** On WSL2, the ROS2 CLI daemon is not started automatically.
+> Without it, `ros2 topic list`, `ros2 topic echo`, `ros2 service list` all hang.
+> Run `ros2 daemon start` once per WSL2 session. The launch file also starts it
+> automatically, but it's good practice to run it manually first.
 
 ---
 
@@ -160,7 +170,21 @@ left wheel  (0, +0.145) ←→ right wheel  (0, -0.145)
 CG ≈ (0, 0) — dead centre of rectangle
 ```
 
-### 4. `/spawn_entity` service not available — robot never spawns
+### 4. `ros2 topic list` / `ros2 service list` hang indefinitely
+
+**Symptom:** Running `ros2 topic list`, `ros2 service list`, or `ros2 topic echo <topic>` in a terminal just hangs with no output.
+
+**Cause:** The ROS2 CLI daemon (`ros2daemon`) is not running. All `ros2` CLI commands
+that do DDS discovery silently wait for the daemon socket, which never responds.
+
+**Fix:** Start the daemon once per WSL2 session:
+```bash
+ros2 daemon start
+```
+The `ros2 launch robot_gazebo gazebo.launch.py` command also starts the daemon automatically.
+After starting the daemon, all `ros2` CLI commands work normally.
+
+### 5. `/spawn_entity` service not available — robot never spawns
 
 **Error:** `Service /spawn_entity unavailable. Was Gazebo started with GazeboRosFactory?`
 
