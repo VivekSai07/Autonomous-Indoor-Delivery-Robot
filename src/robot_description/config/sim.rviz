@@ -43,11 +43,12 @@ Visualization Manager:
       Autocompute Intensity Bounds: true
       Class: rviz_default_plugins/LaserScan
       Color: 255; 50; 50
-      Color Transformer: FlatColor
+      Color Transformer: Flat Color
+      Decay Time: 0.0
       Enabled: true
       Name: LaserScan
-      Size (m): 0.03
-      Style: Points
+      Size (m): 0.05
+      Style: Flat Squares
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -58,7 +59,7 @@ Visualization Manager:
     - Alpha: 0.7
       Angle Tolerance: 0.1
       Class: rviz_default_plugins/Odometry
-      Enabled: true
+      Enabled: false
       Keep: 200
       Name: "Odom RAW (/odom)"
       Position Tolerance: 0.1

@@ -274,49 +274,45 @@ odom
 sudo apt install ros-humble-robot-localization
 ```
 
-**Run order — four terminals** (all sourced + daemon started):
-
-**Terminal 1 — Gazebo:**
+**Single-command full stack** (Gazebo + EKF + RViz — one terminal):
 ```bash
-ros2 launch robot_gazebo gazebo.launch.py
+ros2 launch robot_gazebo bringup.launch.py
 ```
-Wait for: `[python3-4] Spawn result: SpawnEntity: Successfully spawned entity [amr_robot]`
+Wait for: `Spawn result: Successfully spawned entity [amr_robot]`  
+Then: `[ekf_filter_node]: Estimator initialized`  
+RViz opens automatically.
 
-**Terminal 2 — EKF node:**
-```bash
-ros2 launch robot_localization_cfg ekf.launch.py
-```
-Wait for: `[ekf_filter_node]: Estimator initialized`  
-The EKF reads `/odom` (10 Hz) + `/imu` (100 Hz) and publishes `/odometry/filtered` at 30 Hz.
-
-**Terminal 3 — RViz:**
-```bash
-ros2 launch robot_description sim_display.launch.py
-```
-You will see:
-- **Orange arrows** = raw `/odom` (noisy, 10 Hz)
-- **Green arrows** = `/odometry/filtered` (smooth, 30 Hz, EKF fused)
-
-**Terminal 4 — Teleop:**
+**Teleop (separate terminal):**
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
+**What you see in RViz:**
+- 🟠 **Orange arrows** = raw `/odom` (10 Hz, noisy wheel encoder)
+- 🟢 **Green arrows** = `/odometry/filtered` (15 Hz, EKF fused with IMU)
+- 🔴 **Red squares** = live LiDAR scan (`/scan`, current ring only)
+
 **Verify topics and rates:**
 ```bash
-ros2 topic list | grep -E "odom|imu"
-ros2 topic hz /odom                  # nominal 10 Hz (WSL2 sim may show ~50 Hz wall-clock)
-ros2 topic hz /imu                   # nominal 100 Hz (WSL2 may show ~50 Hz)
-ros2 topic hz /odometry/filtered     # nominal 15 Hz (WSL2 may show ~5 Hz — EKF uses sim time)
+ros2 topic hz /odom                  # nominal ~10 Hz (WSL2 wall-clock varies)
+ros2 topic hz /imu                   # nominal ~100 Hz
+ros2 topic hz /odometry/filtered     # nominal ~15 Hz
 ```
 > **WSL2 note:** Gazebo Classic runs below real-time on WSL2, so wall-clock rates
 > differ from sim-time rates. The EKF uses `/clock` (sim time) so `/odometry/filtered`
-> appears slower in wall time but is correct in simulation time.
+> may appear slower in wall time but is correct in simulation time.
 
 **What to observe:**
-1. Drive the robot in a straight line — green trail is smoother than orange
-2. Spin the robot in place — green (IMU at 100 Hz) tracks rotation more tightly
+1. Drive straight — green trail smoother than orange
+2. Spin in place — green tracks rotation faster (IMU at 100 Hz vs encoder at 10 Hz)
 3. Drive in a loop — green trail has less angular drift than orange
+
+**Alternative: individual launches (for debugging):**
+```bash
+# T1: ros2 launch robot_gazebo gazebo.launch.py
+# T2: ros2 launch robot_localization_cfg ekf.launch.py
+# T3: ros2 launch robot_description sim_display.launch.py
+```
 
 ### Phase 4 — SLAM Mapping
 

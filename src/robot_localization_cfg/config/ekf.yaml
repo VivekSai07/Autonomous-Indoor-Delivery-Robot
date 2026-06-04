@@ -15,9 +15,9 @@ ekf_filter_node:
     base_link_frame: base_footprint
     world_frame:     odom
 
-    # EKF publishes odom→base_footprint TF (diff_drive plugin has
-    # publish_odom_tf: false to avoid conflicts)
-    publish_tf: true
+    # diff_drive plugin owns odom→base_footprint TF (publish_odom_tf: true).
+    # EKF publishes /odometry/filtered only — no TF, no conflict.
+    publish_tf: false
     publish_acceleration: false
 
     # ── Input 1: wheel odometry (/odom, nav_msgs/Odometry, ~10 Hz) ────────
