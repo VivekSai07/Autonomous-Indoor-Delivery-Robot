@@ -269,9 +269,54 @@ odom
 
 ### Phase 3 — EKF Sensor Fusion
 
+**Install dependency (once):**
+```bash
+sudo apt install ros-humble-robot-localization
+```
+
+**Run order — four terminals** (all sourced + daemon started):
+
+**Terminal 1 — Gazebo:**
+```bash
+ros2 launch robot_gazebo gazebo.launch.py
+```
+Wait for: `[python3-4] Spawn result: SpawnEntity: Successfully spawned entity [amr_robot]`
+
+**Terminal 2 — EKF node:**
 ```bash
 ros2 launch robot_localization_cfg ekf.launch.py
 ```
+Wait for: `[ekf_filter_node]: Estimator initialized`  
+The EKF reads `/odom` (10 Hz) + `/imu` (100 Hz) and publishes `/odometry/filtered` at 30 Hz.
+
+**Terminal 3 — RViz:**
+```bash
+ros2 launch robot_description sim_display.launch.py
+```
+You will see:
+- **Orange arrows** = raw `/odom` (noisy, 10 Hz)
+- **Green arrows** = `/odometry/filtered` (smooth, 30 Hz, EKF fused)
+
+**Terminal 4 — Teleop:**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+**Verify topics and rates:**
+```bash
+ros2 topic list | grep -E "odom|imu"
+ros2 topic hz /odom                  # nominal 10 Hz (WSL2 sim may show ~50 Hz wall-clock)
+ros2 topic hz /imu                   # nominal 100 Hz (WSL2 may show ~50 Hz)
+ros2 topic hz /odometry/filtered     # nominal 15 Hz (WSL2 may show ~5 Hz — EKF uses sim time)
+```
+> **WSL2 note:** Gazebo Classic runs below real-time on WSL2, so wall-clock rates
+> differ from sim-time rates. The EKF uses `/clock` (sim time) so `/odometry/filtered`
+> appears slower in wall time but is correct in simulation time.
+
+**What to observe:**
+1. Drive the robot in a straight line — green trail is smoother than orange
+2. Spin the robot in place — green (IMU at 100 Hz) tracks rotation more tightly
+3. Drive in a loop — green trail has less angular drift than orange
 
 ### Phase 4 — SLAM Mapping
 

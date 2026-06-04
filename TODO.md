@@ -8,7 +8,8 @@
 
 - [x] **Phase 0**: Project bootstrap — workspace, git, README, TODO
 - [x] **Phase 1**: Robot Description — URDF/Xacro, Gazebo spawn, RViz display ✅
-- [ ] **Phase 2**: Odometry — verify `/odom`, TF tree, teleop drift
+- [x] **Phase 2**: Odometry — verify `/odom`, TF tree, teleop drift ✅
+- [x] **Phase 3**: Sensor Fusion — EKF fuses `/odom`+`/imu` → `/odometry/filtered` ✅
 - [ ] **Phase 3**: Sensor Fusion — EKF (wheel odom + IMU) → `/odometry/filtered`
 - [ ] **Phase 4**: SLAM — SLAM Toolbox mapping → `office_map.yaml`
 - [ ] **Phase 5**: Localization — AMCL on saved map, particle convergence
@@ -54,10 +55,15 @@
 
 ### Phase 3 — Sensor Fusion
 **Branch**: `phase-3/sensor-fusion`
-- [ ] Create `robot_localization_cfg` package
-- [ ] Configure EKF: fuse `/odom` + `/imu`
-- [ ] Verify `/odometry/filtered` is smoother
-- [ ] Update README with `ekf.launch.py` command
+- [x] Install `ros-humble-robot-localization`
+- [x] Create `robot_localization_cfg` package
+- [x] Configure EKF — fuse `/odom` (10 Hz, abs x/y/yaw + vx) + `/imu` (100 Hz, angular vel + accel)
+- [x] `ekf.launch.py` — starts EKF node with sim time
+- [x] `publish_odom_tf: false` in URDF — EKF owns `odom → base_footprint` TF
+- [x] `sim.rviz` updated — shows raw `/odom` (orange) vs `/odometry/filtered` (green)
+- [x] **Verified**: `/odometry/filtered` publishing (WSL2 sim runs below real-time; actual rates: /odom ~50 Hz, /imu ~50 Hz, /filtered ~5 Hz — all functional)
+- [x] **Verified**: EKF TF visible in RViz (`odom → base_footprint` from EKF)
+- [x] **Verified**: Green (filtered) trail smoother than orange (raw) during teleop ✅
 
 ### Phase 4 — SLAM
 **Branch**: `phase-4/slam`
