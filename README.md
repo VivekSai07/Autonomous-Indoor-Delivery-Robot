@@ -269,8 +269,49 @@ odom
 
 ### Phase 3 — EKF Sensor Fusion
 
+**Install dependency (once):**
 ```bash
-ros2 launch robot_localization_cfg ekf.launch.py
+sudo apt install ros-humble-robot-localization
+```
+
+**Single-command full stack** (Gazebo + EKF + RViz — one terminal):
+```bash
+ros2 launch robot_gazebo bringup.launch.py
+```
+Wait for: `Spawn result: Successfully spawned entity [amr_robot]`  
+Then: `[ekf_filter_node]: Estimator initialized`  
+RViz opens automatically.
+
+**Teleop (separate terminal):**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+**What you see in RViz:**
+- 🟠 **Orange arrows** = raw `/odom` (10 Hz, noisy wheel encoder)
+- 🟢 **Green arrows** = `/odometry/filtered` (15 Hz, EKF fused with IMU)
+- 🔴 **Red squares** = live LiDAR scan (`/scan`, current ring only)
+
+**Verify topics and rates:**
+```bash
+ros2 topic hz /odom                  # nominal ~10 Hz (WSL2 wall-clock varies)
+ros2 topic hz /imu                   # nominal ~100 Hz
+ros2 topic hz /odometry/filtered     # nominal ~15 Hz
+```
+> **WSL2 note:** Gazebo Classic runs below real-time on WSL2, so wall-clock rates
+> differ from sim-time rates. The EKF uses `/clock` (sim time) so `/odometry/filtered`
+> may appear slower in wall time but is correct in simulation time.
+
+**What to observe:**
+1. Drive straight — green trail smoother than orange
+2. Spin in place — green tracks rotation faster (IMU at 100 Hz vs encoder at 10 Hz)
+3. Drive in a loop — green trail has less angular drift than orange
+
+**Alternative: individual launches (for debugging):**
+```bash
+# T1: ros2 launch robot_gazebo gazebo.launch.py
+# T2: ros2 launch robot_localization_cfg ekf.launch.py
+# T3: ros2 launch robot_description sim_display.launch.py
 ```
 
 ### Phase 4 — SLAM Mapping

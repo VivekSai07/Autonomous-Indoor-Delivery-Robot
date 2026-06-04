@@ -43,11 +43,12 @@ Visualization Manager:
       Autocompute Intensity Bounds: true
       Class: rviz_default_plugins/LaserScan
       Color: 255; 50; 50
-      Color Transformer: FlatColor
+      Color Transformer: Flat Color
+      Decay Time: 0.0
       Enabled: true
       Name: LaserScan
-      Size (m): 0.03
-      Style: Points
+      Size (m): 0.05
+      Style: Flat Squares
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -55,18 +56,42 @@ Visualization Manager:
         Reliability Policy: Best Effort
         Value: /scan
 
+    - Alpha: 0.7
+      Angle Tolerance: 0.1
+      Class: rviz_default_plugins/Odometry
+      Enabled: false
+      Keep: 200
+      Name: "Odom RAW (/odom)"
+      Position Tolerance: 0.1
+      Shape:
+        Alpha: 0.7
+        Axes Length: 0.2
+        Axes Radius: 0.02
+        Color: 255; 127; 0
+        Head Length: 0.07
+        Head Radius: 0.035
+        Shaft Length: 0.2
+        Shaft Radius: 0.015
+        Value: Arrow
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /odom
+
     - Alpha: 1
       Angle Tolerance: 0.1
       Class: rviz_default_plugins/Odometry
       Enabled: true
       Keep: 200
-      Name: Odometry
+      Name: "Odom FILTERED (/odometry/filtered)"
       Position Tolerance: 0.1
       Shape:
         Alpha: 1
         Axes Length: 0.3
         Axes Radius: 0.03
-        Color: 204; 51; 204
+        Color: 0; 200; 100
         Head Length: 0.1
         Head Radius: 0.05
         Shaft Length: 0.3
@@ -77,7 +102,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /odom
+        Value: /odometry/filtered
 
   Enabled: true
   Global Options:

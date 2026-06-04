@@ -25,3 +25,6 @@ Thumbs.db
 # tf2_tools view_frames generates timestamped files in the workspace root
 frames_*.gv
 frames_*.pdf
+
+# Claude Code internal files (plans, memory)
+.claude/

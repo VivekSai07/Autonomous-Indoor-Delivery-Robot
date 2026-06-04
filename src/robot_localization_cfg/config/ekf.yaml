@@ -1,0 +1,63 @@
+ekf_filter_node:
+  ros__parameters:
+
+    # ── Core EKF settings ─────────────────────────────────────────────────
+    frequency: 15.0          # EKF output rate (Hz) — 1.5x raw odom; kept moderate for WSL2
+    sensor_timeout: 0.5      # drop sensor if silent for this long (s); odom is at 10 Hz = 0.1s
+    two_d_mode: true          # flat-ground robot: ignore Z, roll, pitch
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+    debug: false
+
+    # ── Frame IDs ─────────────────────────────────────────────────────────
+    odom_frame:      odom
+    base_link_frame: base_footprint
+    world_frame:     odom
+
+    # diff_drive plugin owns odom→base_footprint TF (publish_odom_tf: true).
+    # EKF publishes /odometry/filtered only — no TF, no conflict.
+    publish_tf: false
+    publish_acceleration: false
+
+    # ── Input 1: wheel odometry (/odom, nav_msgs/Odometry, ~10 Hz) ────────
+    #
+    # State vector indices (each bool = use this measurement?):
+    #   [x,    y,     z,
+    #    roll, pitch, yaw,
+    #    vx,   vy,    vz,
+    #    vroll,vpitch,vyaw,
+    #    ax,   ay,    az]
+    #
+    # Use:  absolute x, y, yaw from pose
+    #       forward velocity vx from twist
+    # Skip: vy (always 0 on diff drive), angular velocities (IMU handles those)
+    odom0: /odom
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   true,  false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size:    10
+    odom0_nodelay:       true
+    odom0_differential:  false
+    odom0_relative:      false
+
+    # ── Input 2: IMU (/imu, sensor_msgs/Imu, 100 Hz) ─────────────────────
+    #
+    # Use:  angular velocities (vroll, vpitch, vyaw) — 100 Hz gives much
+    #       smoother yaw than integrating 10 Hz encoder deltas
+    #       linear accelerations ax, ay — improves velocity estimate
+    # Skip: position (IMU has none), orientation (avoid reference-frame issues),
+    #       az (gravity along Z, two_d_mode handles this anyway)
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  true,  true,  false]
+    imu0_queue_size:    10
+    imu0_nodelay:       true
+    imu0_differential:  false
+    imu0_relative:      true
+    imu0_remove_gravitational_acceleration: true
