@@ -1,0 +1,51 @@
+amcl:
+  ros__parameters:
+
+    # ── Particle filter ────────────────────────────────────────────────────
+    min_particles: 500
+    max_particles: 2000
+
+    # ── Robot motion model ─────────────────────────────────────────────────
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+
+    # Odometry noise parameters (higher = more odometry uncertainty assumed)
+    alpha1: 0.2   # rotation noise due to rotation
+    alpha2: 0.2   # rotation noise due to translation
+    alpha3: 0.2   # translation noise due to translation
+    alpha4: 0.2   # translation noise due to rotation
+    alpha5: 0.1   # strafe noise (unused on diff drive; required by API)
+
+    # ── Laser model ────────────────────────────────────────────────────────
+    # likelihood_field is more robust than beam in cluttered environments.
+    laser_model_type: "likelihood_field"
+    laser_max_range: 10.0     # matches robot.urdf.xacro LiDAR max
+    laser_min_range: 0.12     # matches robot.urdf.xacro LiDAR min
+    max_beams: 60             # beams sampled per scan (of 360 total)
+    laser_likelihood_max_dist: 2.0
+
+    # ── Frame IDs ──────────────────────────────────────────────────────────
+    global_frame_id:  map
+    odom_frame_id:    odom
+    base_frame_id:    base_footprint
+    scan_topic:       scan
+
+    # ── TF ─────────────────────────────────────────────────────────────────
+    # AMCL publishes map→odom TF (replaces SLAM Toolbox in localization mode)
+    tf_broadcast: true
+    transform_tolerance: 1.0
+
+    # ── Initial pose ───────────────────────────────────────────────────────
+    # Set to false — use "2D Pose Estimate" in RViz to set initial pose.
+    set_initial_pose: false
+
+    # ── Update thresholds ─────────────────────────────────────────────────
+    update_min_d: 0.2      # minimum travel (m) before particle update
+    update_min_a: 0.2      # minimum rotation (rad) before particle update
+    resample_interval: 1
+
+    # ── Recovery (random particle injection on poor match) ─────────────────
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+
+    # ── Pose saving ────────────────────────────────────────────────────────
+    save_pose_rate: 0.5

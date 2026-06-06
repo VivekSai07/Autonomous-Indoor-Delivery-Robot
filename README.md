@@ -360,8 +360,50 @@ ros2 launch robot_slam slam.launch.py
 
 ### Phase 5 — Localization (AMCL)
 
+**Install dependencies (once):**
+```bash
+sudo apt install ros-humble-nav2-amcl ros-humble-nav2-lifecycle-manager
+```
+
+**Full stack** (Gazebo + EKF + Map Server + AMCL + RViz — one terminal):
+```bash
+ros2 launch robot_slam localization_bringup.launch.py
+```
+Wait for `[lifecycle_manager_localization]: Managed nodes are active` in the console.  
+RViz opens with the saved map displayed.
+
+**Set initial pose:**
+In RViz, click **2D Pose Estimate** (toolbar), then click-and-drag on the map where the robot actually is. A cloud of blue arrows (particles) will appear — this is AMCL's uncertainty about the pose.
+
+**Teleop (separate terminal):**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+Drive the robot. Watch the blue particle cloud converge to a tight cluster around the robot as it observes landmarks — this is successful localization.
+
+**What you see in RViz:**
+- 🗺️ **Grey/white map** — the saved `office_map.pgm`
+- 🔵 **Blue arrows** — AMCL particle cloud (`/particle_cloud`)
+- 🟠 **Orange arrow** — best AMCL pose estimate (`/amcl_pose`)
+- 🔴 **Red squares** — live LiDAR scan (`/scan`)
+
+**Test delocalization recovery:**
+1. Pick up the robot in Gazebo (drag it to a new position with the mouse)
+2. Particle cloud will spread out (AMCL is confused)
+3. Drive the robot — particles should reconverge within a few seconds
+
+**Standalone localization node only** (if simulation already running):
 ```bash
 ros2 launch robot_slam localization.launch.py
+# Optional: override map path
+ros2 launch robot_slam localization.launch.py map:=/path/to/other_map.yaml
+```
+
+**TF chain during localization:**
+```
+map                  ← AMCL (replaces SLAM Toolbox)
+  └── odom           ← EKF
+        └── base_footprint → base_link → sensors
 ```
 
 ### Phase 6 — Nav2 Navigation
