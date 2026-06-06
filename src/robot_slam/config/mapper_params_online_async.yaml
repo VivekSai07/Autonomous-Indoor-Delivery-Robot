@@ -1,0 +1,58 @@
+slam_toolbox:
+  ros__parameters:
+
+    # ── Solver ──────────────────────────────────────────────────────────────
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
+    ceres_preconditioner: SCHUR_JACOBI
+    ceres_trust_strategy: LEVENBERG_MARQUARDT
+    ceres_dogleg_type: TRADITIONAL_DOGLEG
+    ceres_loss_function: None
+
+    # ── Frame IDs ──────────────────────────────────────────────────────────
+    # EKF owns odom→base_footprint TF (publish_tf: true in ekf.yaml).
+    # SLAM Toolbox reads that TF to get odometry and publishes map→odom.
+    odom_frame:  odom
+    map_frame:   map
+    base_frame:  base_footprint
+    scan_topic:  /scan
+    mode:        mapping
+
+    # ── Timing / WSL2 ──────────────────────────────────────────────────────
+    # WSL2 runs Gazebo below real-time, so use sim time and relax timeouts.
+    use_sim_time: true
+    debug_logging: false
+    throttle_scans: 1
+    transform_publish_period: 0.02    # 50 Hz map→odom TF
+    map_update_interval: 5.0          # regenerate occupancy grid every 5 s
+    transform_timeout: 0.5            # longer than default for WSL2 jitter
+    tf_buffer_duration: 30.0
+    stack_size_to_use: 40000000
+
+    # ── Scan matching ──────────────────────────────────────────────────────
+    use_scan_matching: true
+    use_scan_barycenter: true
+
+    # Robot only adds a new keyframe after traveling this far / rotating this much.
+    # Keep conservative so SLAM isn't overwhelmed on WSL2.
+    minimum_travel_distance: 0.2      # meters
+    minimum_travel_heading: 0.2       # radians (~11°)
+    minimum_time_interval: 0.5        # seconds between accepted scans
+
+    # ── LiDAR geometry ────────────────────────────────────────────────────
+    # Matches robot.urdf.xacro: max 10m range, 270° FOV
+    max_laser_range: 10.0
+
+    # ── Map resolution & size ────────────────────────────────────────────
+    resolution: 0.05                  # 5 cm/cell — good balance for office env
+    max_iterations: 500
+
+    # ── Loop closure ─────────────────────────────────────────────────────
+    enable_interactive_mode: true
+    interactive_mode: false
+
+    # ── Serialisation (save/load) ────────────────────────────────────────
+    # Set to non-empty path to auto-save pose graph on shutdown.
+    map_file_name: ""
+    map_start_pose: [0.0, 0.0, 0.0]
+    map_start_at_dock: true
