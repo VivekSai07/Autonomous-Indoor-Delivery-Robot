@@ -1,6 +1,6 @@
 # Project TODO
 
-## Current Phase: Phase 4 — SLAM 🔧
+## Current Phase: Phase 5 — Localization 🔧
 
 ---
 
@@ -10,7 +10,7 @@
 - [x] **Phase 1**: Robot Description — URDF/Xacro, Gazebo spawn, RViz display ✅
 - [x] **Phase 2**: Odometry — verify `/odom`, TF tree, teleop drift ✅
 - [x] **Phase 3**: Sensor Fusion — EKF fuses `/odom`+`/imu` → `/odometry/filtered` ✅
-- [ ] **Phase 4**: SLAM — SLAM Toolbox mapping → `office_map.yaml`
+- [x] **Phase 4**: SLAM — SLAM Toolbox mapping → `office_map.yaml` ✅
 - [ ] **Phase 5**: Localization — AMCL on saved map, particle convergence
 - [ ] **Phase 6**: Nav2 Navigation — planner + controller + costmaps, click-to-navigate
 - [ ] **Phase 7**: Dynamic Obstacles — Gazebo actor, Nav2 replanning
@@ -72,11 +72,13 @@
 - [x] `slam.launch.py` — standalone SLAM Toolbox node
 - [x] `slam_bringup.launch.py` — full stack (Gazebo + EKF + SLAM + RViz)
 - [x] `slam.rviz` — fixed frame `map`, shows /map occupancy grid + LaserScan
-- [ ] Install `ros-humble-slam-toolbox`: `sudo apt install ros-humble-slam-toolbox`
-- [ ] Build and verify: `colcon build --symlink-install --packages-select robot_slam`
-- [ ] Map the simulated environment via teleop
-- [ ] Save map: `ros2 run nav2_map_server map_saver_cli -f ~/amr_ws/maps/office_map`
-- [ ] **Verified**: Map image shows walls/obstacles clearly ✅
+- [x] Install `ros-humble-slam-toolbox`
+- [x] Build and verify: all 4 packages clean
+- [x] Map the simulated environment via teleop
+- [x] Save map: `ros2 run nav2_map_server map_saver_cli -f ~/amr_ws/maps/office_map`
+- [x] **Verified**: `map→odom` at 10 Hz (SLAM Toolbox), `odom→base_footprint` at 10 Hz (EKF) ✅
+- [x] **Verified**: Full TF chain `map→odom→base_footprint→base_link→sensors` confirmed ✅
+- [x] TF tree saved to `docs/tf_tree_phase4.gv`
 
 ### Phase 5 — Localization
 **Branch**: `phase-5/localization`
