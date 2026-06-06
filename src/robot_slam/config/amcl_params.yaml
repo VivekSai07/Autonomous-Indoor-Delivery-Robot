@@ -35,8 +35,16 @@ amcl:
     transform_tolerance: 1.0
 
     # ── Initial pose ───────────────────────────────────────────────────────
-    # Set to false — use "2D Pose Estimate" in RViz to set initial pose.
-    set_initial_pose: false
+    # true: AMCL publishes map→odom TF immediately on startup using the pose
+    # below, so RViz shows the robot model before "2D Pose Estimate" is used.
+    # The robot spawns at (0,0) in Gazebo, matching this default.
+    # Use "2D Pose Estimate" in RViz to correct if the robot is placed elsewhere.
+    set_initial_pose: true
+    initial_pose:
+      x:   0.0
+      y:   0.0
+      z:   0.0
+      yaw: 0.0
 
     # ── Update thresholds ─────────────────────────────────────────────────
     update_min_d: 0.2      # minimum travel (m) before particle update
