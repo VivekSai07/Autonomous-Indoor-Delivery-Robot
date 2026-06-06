@@ -316,10 +316,46 @@ ros2 topic hz /odometry/filtered     # nominal ~15 Hz
 
 ### Phase 4 — SLAM Mapping
 
+**Install dependency (once):**
+```bash
+sudo apt install ros-humble-slam-toolbox
+```
+
+**Full stack** (Gazebo + EKF + SLAM Toolbox + RViz — one terminal):
+```bash
+ros2 launch robot_slam slam_bringup.launch.py
+```
+Wait for `[slam_toolbox]: Registering sensor...` in the console output.  
+RViz opens automatically with the `/map` occupancy grid display.
+
+**Teleop (separate terminal):**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+Drive the robot around the office environment. Watch the grey/white occupancy grid grow in RViz as walls are mapped.
+
+**Save the map when coverage looks good:**
+```bash
+# Requires nav2_map_server (comes with ros-humble-nav2-bringup)
+ros2 run nav2_map_server map_saver_cli -f ~/amr_ws/maps/office_map
+```
+This writes:
+- `maps/office_map.yaml` — map metadata (resolution, origin)
+- `maps/office_map.pgm` — grayscale image (white = free, black = obstacle, grey = unknown)
+
+**TF chain during SLAM:**
+```
+map                         ← published by SLAM Toolbox (map→odom)
+  └── odom                  ← published by EKF (odom→base_footprint)
+        └── base_footprint
+              └── base_link
+                    ├── lidar_link   ← LiDAR scan frames
+                    └── ...
+```
+
+**Standalone SLAM node only** (if simulation is already running):
 ```bash
 ros2 launch robot_slam slam.launch.py
-# Save map when done:
-ros2 run nav2_map_server map_saver_cli -f ~/amr_ws/maps/office_map
 ```
 
 ### Phase 5 — Localization (AMCL)
