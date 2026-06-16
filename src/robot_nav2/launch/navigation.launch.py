@@ -19,18 +19,19 @@ def generate_launch_description():
         description='Full path to map YAML'
     )
 
-    # Single lifecycle manager activates nodes SEQUENTIALLY in the order listed.
-    # map_server and amcl come first so AMCL publishes map→odom TF before
-    # bt_navigator / costmaps try to use it.
+    # Activation order matters.
+    # map_server + amcl first → map→odom TF exists before costmaps need it.
+    # bt_navigator LAST → planner_server, controller_server, behavior_server
+    # are all active before bt_navigator accepts goals and tries to call them.
     managed_nodes = [
         'map_server',
         'amcl',
-        'bt_navigator',
         'planner_server',
         'controller_server',
         'behavior_server',
         'velocity_smoother',
         'waypoint_follower',
+        'bt_navigator',
     ]
 
     return LaunchDescription([
