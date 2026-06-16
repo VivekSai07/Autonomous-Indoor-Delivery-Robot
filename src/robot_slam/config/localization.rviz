@@ -69,10 +69,7 @@ Visualization Manager:
         Reliability Policy: Best Effort
         Value: /scan
 
-    - Alpha: 0.8
-      Arrow Scale: 0.3
-      Class: rviz_default_plugins/PoseArray
-      Color: 0; 180; 255
+    - Class: nav2_rviz_plugins/ParticleCloud
       Enabled: true
       Name: "Particle Cloud (/particle_cloud)"
       Topic:
