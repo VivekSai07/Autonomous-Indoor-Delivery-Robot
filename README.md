@@ -408,9 +408,51 @@ map                  ← AMCL (replaces SLAM Toolbox)
 
 ### Phase 6 — Nav2 Navigation
 
+**Install dependencies (once):**
+```bash
+sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup
+```
+
+**Full stack** (Gazebo + EKF + Nav2 + RViz — one terminal):
+```bash
+ros2 launch robot_nav2 navigation_bringup.launch.py
+```
+Wait for both lifecycle managers to report active:
+```
+[lifecycle_manager_localization]: Managed nodes are active
+[lifecycle_manager_navigation]: Managed nodes are active
+```
+
+**Send a navigation goal:**
+In RViz, click **Nav2 Goal** (arrow icon in toolbar), then click-and-drag on the map. The robot will:
+1. Plan a global path (blue line)
+2. Follow it with the DWB local controller (green local plan)
+3. Stop cleanly at the goal
+
+**What you see in RViz:**
+- 🗺️ **Map** — saved office_map
+- 🟫 **Global costmap** — inflated obstacles (colourmap overlay)
+- 🟨 **Local costmap** — 3 m × 3 m rolling window around robot
+- 🔵 **Global path** — NavfnPlanner output (`/plan`)
+- 🟢 **Local plan** — DWB trajectory (`/local_plan`)
+- 🟩 **Robot footprint** — actual collision boundary (`/local_costmap/published_footprint`)
+- 🔴 **LaserScan** — live LiDAR
+
+**Verify topics (separate terminal):**
+```bash
+ros2 topic hz /plan          # publishes when goal is active
+ros2 topic hz /cmd_vel       # velocity commands to robot
+ros2 topic hz /local_plan    # DWB local trajectory
+```
+
+**TF chain during navigation:**
+```
+map → odom (AMCL) → base_footprint (EKF) → base_link → sensors
+```
+
+**Standalone nav stack** (if Gazebo already running):
 ```bash
 ros2 launch robot_nav2 navigation.launch.py
-# Then use "2D Nav Goal" in RViz
 ```
 
 ### Phase 8 — Autonomous Mission

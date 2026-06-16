@@ -1,6 +1,6 @@
 # Project TODO
 
-## Current Phase: Phase 5 — Localization 🔧
+## Current Phase: Phase 6 — Navigation 🔧
 
 ---
 
@@ -11,7 +11,7 @@
 - [x] **Phase 2**: Odometry — verify `/odom`, TF tree, teleop drift ✅
 - [x] **Phase 3**: Sensor Fusion — EKF fuses `/odom`+`/imu` → `/odometry/filtered` ✅
 - [x] **Phase 4**: SLAM — SLAM Toolbox mapping → `office_map.yaml` ✅
-- [ ] **Phase 5**: Localization — AMCL on saved map, particle convergence
+- [x] **Phase 5**: Localization — AMCL on saved map, particle convergence ✅
 - [ ] **Phase 6**: Nav2 Navigation — planner + controller + costmaps, click-to-navigate
 - [ ] **Phase 7**: Dynamic Obstacles — Gazebo actor, Nav2 replanning
 - [ ] **Phase 8**: Multi-Goal Mission — 5-waypoint autonomous mission loop
@@ -86,20 +86,23 @@
 - [x] Add `localization.launch.py` — map_server + amcl + lifecycle_manager
 - [x] Add `localization_bringup.launch.py` — full stack (Gazebo + EKF + localization + RViz)
 - [x] Add `localization.rviz` — map, particle cloud (/particle_cloud), AMCL pose, laser, 2D Pose Estimate tool
-- [ ] Install dependencies: `sudo apt install ros-humble-nav2-amcl ros-humble-nav2-lifecycle-manager`
-- [ ] Build: `colcon build --symlink-install --packages-select robot_slam`
-- [ ] Set initial pose in RViz (`2D Pose Estimate`) → verify particle cloud spawns
-- [ ] Teleoperate → verify particle cloud converges to robot position
-- [ ] Delocalize manually → verify recovery
-- [ ] **Verified**: Particle cloud converges and robot stays localized during teleop ✅
+- [x] Install dependencies: `ros-humble-nav2-amcl`, `ros-humble-nav2-lifecycle-manager`, `ros-humble-nav2-rviz-plugins`
+- [x] Build clean, set initial pose, particle cloud converges, delocalization recovery verified ✅
+- [x] **Verified**: `nav2_rviz_plugins/ParticleCloud` fix — `nav2_msgs/ParticleCloud` type mismatch resolved ✅
 
 ### Phase 6 — Nav2 Navigation
 **Branch**: `phase-6/navigation`
-- [ ] Create `robot_nav2` package
-- [ ] Configure Nav2 params (planner, controller, costmaps, BT)
-- [ ] `navigation.launch.py` (nav2 + amcl + map server)
-- [ ] Verify: click `2D Nav Goal` → robot reaches goal
-- [ ] Add architecture diagram to `docs/`
+- [x] Create `robot_nav2` package
+- [x] `nav2_params.yaml` — NavfnPlanner, DWBLocalPlanner, global/local costmaps tuned for 0.3×0.25 m robot
+- [x] `navigation.launch.py` — map_server + AMCL + bt_navigator + planner + controller + behaviors + velocity_smoother + waypoint_follower + lifecycle_manager
+- [x] `navigation_bringup.launch.py` — full stack (Gazebo + EKF + navigation.launch.py + RViz)
+- [x] `navigation.rviz` — map, global/local costmaps, global path, local plan, footprint, 2D Nav Goal tool
+- [ ] Install: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
+- [ ] Build: `colcon build --symlink-install`
+- [ ] Launch and send `2D Nav Goal` → robot plans and drives to goal
+- [ ] Verify global path (blue) and local plan (green) appear in RViz
+- [ ] Verify robot stops cleanly at goal
+- [ ] **Verified**: click goal → robot reaches it autonomously ✅
 
 ### Phase 7 — Dynamic Obstacles
 **Branch**: `phase-7/dynamic-obstacles`
