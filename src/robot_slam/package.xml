@@ -3,13 +3,17 @@
 <package format="3">
   <name>robot_slam</name>
   <version>0.1.0</version>
-  <description>SLAM Toolbox async-online mapping config for the AMR robot</description>
+  <description>SLAM Toolbox mapping and AMCL localization config for the AMR robot</description>
   <maintainer email="viveksaisurya07@gmail.com">VivekSai07</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_amcl</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>nav2_rviz_plugins</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

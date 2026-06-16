@@ -82,10 +82,16 @@
 
 ### Phase 5 — Localization
 **Branch**: `phase-5/localization`
-- [ ] Add `localization.launch.py` to `robot_slam`
-- [ ] Configure AMCL params
-- [ ] Verify particle convergence in RViz
-- [ ] Test recovery from delocalization
+- [x] Add `amcl_params.yaml` — likelihood_field model, 500–2000 particles, diff drive motion model
+- [x] Add `localization.launch.py` — map_server + amcl + lifecycle_manager
+- [x] Add `localization_bringup.launch.py` — full stack (Gazebo + EKF + localization + RViz)
+- [x] Add `localization.rviz` — map, particle cloud (/particle_cloud), AMCL pose, laser, 2D Pose Estimate tool
+- [ ] Install dependencies: `sudo apt install ros-humble-nav2-amcl ros-humble-nav2-lifecycle-manager`
+- [ ] Build: `colcon build --symlink-install --packages-select robot_slam`
+- [ ] Set initial pose in RViz (`2D Pose Estimate`) → verify particle cloud spawns
+- [ ] Teleoperate → verify particle cloud converges to robot position
+- [ ] Delocalize manually → verify recovery
+- [ ] **Verified**: Particle cloud converges and robot stays localized during teleop ✅
 
 ### Phase 6 — Nav2 Navigation
 **Branch**: `phase-6/navigation`
