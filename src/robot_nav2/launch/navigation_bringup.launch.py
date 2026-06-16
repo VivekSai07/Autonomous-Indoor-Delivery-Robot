@@ -1,7 +1,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -40,9 +40,9 @@ def generate_launch_description():
             parameters=[ekf_config, {'use_sim_time': True}],
         ),
 
-        # 3. Full Nav2 stack (map_server + amcl + bt_navigator + planner
-        #    + controller + behaviors + velocity_smoother + waypoint_follower
-        #    + both lifecycle managers)
+        # 3. Full Nav2 stack: map_server → amcl → bt_navigator → planner
+        #    → controller → behaviors → velocity_smoother → waypoint_follower
+        #    All managed by a single lifecycle manager (activation in order).
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_nav2, 'launch', 'navigation.launch.py')
@@ -50,13 +50,19 @@ def generate_launch_description():
             launch_arguments={'map': LaunchConfiguration('map')}.items(),
         ),
 
-        # 4. RViz with Nav2 displays and goal-setting tools
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', rviz_config],
-            parameters=[{'use_sim_time': True}],
-            output='screen',
+        # 4. RViz — delayed 8 s so AMCL has time to activate and publish
+        #    map→odom before RViz starts requesting transforms.
+        TimerAction(
+            period=8.0,
+            actions=[
+                Node(
+                    package='rviz2',
+                    executable='rviz2',
+                    name='rviz2',
+                    arguments=['-d', rviz_config],
+                    parameters=[{'use_sim_time': True}],
+                    output='screen',
+                ),
+            ],
         ),
     ])

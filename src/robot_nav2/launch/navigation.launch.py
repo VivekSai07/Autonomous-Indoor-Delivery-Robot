@@ -1,16 +1,16 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg_slam    = get_package_share_directory('robot_slam')
-    pkg_nav2    = get_package_share_directory('robot_nav2')
+    pkg_slam = get_package_share_directory('robot_slam')
+    pkg_nav2 = get_package_share_directory('robot_nav2')
 
+    amcl_config = os.path.join(pkg_slam, 'config', 'amcl_params.yaml')
     nav2_params = os.path.join(pkg_nav2, 'config', 'nav2_params.yaml')
 
     map_arg = DeclareLaunchArgument(
@@ -19,18 +19,44 @@ def generate_launch_description():
         description='Full path to map YAML'
     )
 
+    # Single lifecycle manager activates nodes SEQUENTIALLY in the order listed.
+    # map_server and amcl come first so AMCL publishes map→odom TF before
+    # bt_navigator / costmaps try to use it.
+    managed_nodes = [
+        'map_server',
+        'amcl',
+        'bt_navigator',
+        'planner_server',
+        'controller_server',
+        'behavior_server',
+        'velocity_smoother',
+        'waypoint_follower',
+    ]
+
     return LaunchDescription([
         map_arg,
 
-        # 1. Map server + AMCL + lifecycle_manager_localization
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(pkg_slam, 'launch', 'localization.launch.py')
-            ),
-            launch_arguments={'map': LaunchConfiguration('map')}.items(),
+        # ── Localization ──────────────────────────────────────────────────────
+        Node(
+            package='nav2_map_server',
+            executable='map_server',
+            name='map_server',
+            output='screen',
+            parameters=[
+                {'use_sim_time': True},
+                {'yaml_filename': LaunchConfiguration('map')},
+            ],
         ),
 
-        # 2. BT Navigator
+        Node(
+            package='nav2_amcl',
+            executable='amcl',
+            name='amcl',
+            output='screen',
+            parameters=[amcl_config, {'use_sim_time': True}],
+        ),
+
+        # ── Navigation stack ──────────────────────────────────────────────────
         Node(
             package='nav2_bt_navigator',
             executable='bt_navigator',
@@ -39,7 +65,6 @@ def generate_launch_description():
             parameters=[nav2_params, {'use_sim_time': True}],
         ),
 
-        # 3. Planner Server (global path — NavfnPlanner)
         Node(
             package='nav2_planner',
             executable='planner_server',
@@ -48,7 +73,8 @@ def generate_launch_description():
             parameters=[nav2_params, {'use_sim_time': True}],
         ),
 
-        # 4. Controller Server (local trajectory — DWB)
+        # controller_server outputs to cmd_vel_nav; velocity_smoother consumes
+        # cmd_vel_nav and republishes to cmd_vel for the diff drive plugin.
         Node(
             package='nav2_controller',
             executable='controller_server',
@@ -58,7 +84,6 @@ def generate_launch_description():
             remappings=[('cmd_vel', 'cmd_vel_nav')],
         ),
 
-        # 5. Behavior Server (spin, backup, wait recoveries)
         Node(
             package='nav2_behaviors',
             executable='behavior_server',
@@ -67,7 +92,6 @@ def generate_launch_description():
             parameters=[nav2_params, {'use_sim_time': True}],
         ),
 
-        # 6. Velocity Smoother (removes jerky cmd_vel output)
         Node(
             package='nav2_velocity_smoother',
             executable='velocity_smoother',
@@ -75,12 +99,11 @@ def generate_launch_description():
             output='screen',
             parameters=[nav2_params, {'use_sim_time': True}],
             remappings=[
-                ('cmd_vel',        'cmd_vel_nav'),
+                ('cmd_vel',          'cmd_vel_nav'),
                 ('cmd_vel_smoothed', 'cmd_vel'),
             ],
         ),
 
-        # 7. Waypoint Follower (multi-goal, used in Phase 8)
         Node(
             package='nav2_waypoint_follower',
             executable='waypoint_follower',
@@ -89,7 +112,7 @@ def generate_launch_description():
             parameters=[nav2_params, {'use_sim_time': True}],
         ),
 
-        # 8. Lifecycle Manager for Nav2 nodes
+        # ── Lifecycle manager ─────────────────────────────────────────────────
         Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',
@@ -98,14 +121,7 @@ def generate_launch_description():
             parameters=[
                 {'use_sim_time': True},
                 {'autostart': True},
-                {'node_names': [
-                    'bt_navigator',
-                    'planner_server',
-                    'controller_server',
-                    'behavior_server',
-                    'velocity_smoother',
-                    'waypoint_follower',
-                ]},
+                {'node_names': managed_nodes},
             ],
         ),
     ])
